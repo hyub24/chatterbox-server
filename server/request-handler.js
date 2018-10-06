@@ -12,8 +12,14 @@ this file and include it in basic-server.js so that it actually works.
 
 **************************************************************/
 var data = {
-  results: []
+  results: [ {
+    username: 'david',
+    roomname: 'default',
+    text: 'so hard'
+  } ]
 };
+
+
 
 var requestHandler = function(request, response) {
   // Request and Response come from node's http module.
@@ -25,20 +31,33 @@ var requestHandler = function(request, response) {
   // Documentation for both request and response can be found in the HTTP section at
   // http://nodejs.org/documentation/api/
 
+  var defaultCorsHeaders = {
+    'Content-Type': 'application/json',
+    'access-control-allow-origin': '*',
+    'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'access-control-allow-headers': 'content-type, accept',
+    'access-control-max-age': 10 // Seconds.
+  }; 
+  
+  if (request.method === 'OPTIONS') {
+    response.writeHead(200, defaultCorsHeaders);
+    response.end();
+  }  
   
   if (request.method === 'GET') {
     if (request.url === '/classes/messages') {
-      response.writeHead(200);
+      response.writeHead(200, defaultCorsHeaders);
+      console.log(data) ;
       response.end(JSON.stringify(data));
     } else {
-      response.writeHead(404);
+      response.writeHead(404, defaultCorsHeaders);
       response.end();
     }
   }
   
   if (request.method === 'POST') {
     if (request.url === '/classes/messages') {
-      response.writeHead(201);
+      response.writeHead(201, defaultCorsHeaders);
       var requestBody = '';
       request.on('data', (piece) => {
         requestBody += piece;
@@ -47,10 +66,13 @@ var requestHandler = function(request, response) {
       request.on('end', () => {
         var parsedBody = JSON.parse(requestBody);
         data.results.push(parsedBody);
+        console.log(data.results);
         response.end();
       });
     }
   }
+  
+
 
   
   // Do some basic logging.
@@ -64,7 +86,6 @@ var requestHandler = function(request, response) {
   
   // ==============================================
   
-  //var headers = defaultCorsHeaders;
   // ==============================================
 
   
@@ -101,12 +122,7 @@ var requestHandler = function(request, response) {
 //
 // Another way to get around this restriction is to serve you chat
 // client from this domain by setting up static file serving.
-var defaultCorsHeaders = {
-  'access-control-allow-origin': '*',
-  'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'access-control-allow-headers': 'content-type, accept',
-  'access-control-max-age': 10 // Seconds.
-};
+
 
 exports.requestHandler = requestHandler;
 
